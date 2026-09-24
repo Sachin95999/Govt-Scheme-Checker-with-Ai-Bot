@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" th:class="${theme}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{nav.admin} + ' - SchemeAI'"></title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bg: 'var(--bg-primary)',
+                        surface: 'var(--bg-surface)',
+                        'surface-sec': 'var(--bg-surface-sec)',
+                        border: 'var(--border-color)',
+                        primary: 'var(--color-primary)',
+                        'primary-hover': 'var(--color-primary-hover)',
+                        success: 'var(--color-success)',
+                        warning: 'var(--color-warning)',
+                        error: 'var(--color-error)',
+                        'text-main': 'var(--text-main)',
+                        'text-muted': 'var(--text-muted)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-bg text-text-main">
+
+    <!-- Top Header -->
+    <header class="w-full bg-surface border-b border-border px-6 py-4 flex items-center justify-between z-10 shrink-0">
+        <div class="flex items-center gap-6">
+            <a href="dashboard.html" class="text-xl font-bold tracking-tight text-primary">SchemeAI</a>
+            <nav class="hidden md:flex items-center gap-4 text-xs font-semibold uppercase tracking-wider">
+                <a href="dashboard.html" class="text-text-muted hover:text-text-main transition" th:text="#{nav.chatbot}">AI Chatbot</a>
+                <a href="eligibility.html" class="text-text-muted hover:text-text-main transition" th:text="#{nav.eligibility}">Eligibility Checker</a>
+                <a id="nav-admin-link" href="admin.html" class="text-primary border-b border-primary pb-1" th:text="#{nav.admin}">Admin Panel</a>
+            </nav>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <!-- Language Switcher -->
+            <div class="flex items-center gap-2 text-xs font-semibold">
+                <a href="?lang=en" class="hover:text-primary transition" th:classappend="${#locale.language == 'en'} ? 'text-primary font-bold' : 'text-text-muted'">EN</a>
+                <span class="text-border">|</span>
+                <a href="?lang=hi" class="hover:text-primary transition" th:classappend="${#locale.language == 'hi'} ? 'text-primary font-bold' : 'text-text-muted'">हिंदी</a>
+            </div>
+
+            <!-- Theme Toggle -->
+            <div>
+                <a th:if="${theme == 'dark'}" href="/set-theme?theme=light" class="text-text-muted hover:text-text-main transition text-sm" title="Switch to Light Mode">☀️</a>
+                <a th:if="${theme != 'dark'}" href="/set-theme?theme=dark" class="text-text-muted hover:text-text-main transition text-sm" title="Switch to Dark Mode">🌙</a>
+            </div>
+
+            <div class="flex items-center gap-4 text-sm">
+                <span class="text-text-muted font-medium"><span th:text="#{nav.hello}">Hello</span>, <span id="nav-username" class="text-text-main font-semibold">User</span></span>
+                <button onclick="logout()" class="bg-surface border border-border text-text-muted px-3 py-1.5 rounded-lg hover:bg-surface-sec hover:text-text-main transition text-xs font-semibold uppercase tracking-wider" th:text="#{nav.logout}">Log Out</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 w-full max-w-7xl mx-auto px-6 py-10 space-y-8">
+        <div>
+            <h2 class="text-xl font-bold text-text-main tracking-tight" th:text="#{admin.title}">Admin Console</h2>
+            <p class="text-xs text-text-muted mt-1" th:text="#{admin.desc}">Configure vector databases, upload PDF specifications, check feedback, and seed schemes.</p>
+        </div>
+
+        <!-- Metrics cards -->
+        <section id="admin-metrics" class="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div class="bg-surface border border-border p-4 rounded-xl text-center text-xs text-text-muted">Loading metrics...</div>
+        </section>
+
+        <!-- Twin Columns -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left Side: RAG & Document Management -->
+            <section class="lg:col-span-5 space-y-6">
+                <!-- PDF Upload Card -->
+                <div class="bg-surface border border-border p-6 rounded-xl shadows">
+                    <h3 class="text-xs font-bold text-text-main uppercase tracking-wider mb-2" th:text="#{admin.upload.title}">Ingest Scheme PDF</h3>
+                    <p class="text-[10px] text-text-muted leading-normal mb-4" th:text="#{admin.upload.desc}">Official guidelines uploaded here will be page-extracted, vectorized, and integrated into the RAG similarity store.</p>
+                    
+                    <form id="admin-upload-form" class="space-y-4">
+                        <div class="space-y-1">
+                            <label for="pdf-file" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.upload.label}">Select Scheme PDF File</label>
+                            <input type="file" id="pdf-file" required accept="application/pdf" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs">
+                        </div>
+                        <div id="upload-progress-text" class="text-primary font-medium text-xs hidden animate-pulse"></div>
+                        <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white text-xs font-semibold py-2.5 rounded-lg transition duration-150 shadow-sm" th:text="#{admin.upload.btn}">Process & Vectorize Document</button>
+                    </form>
+                </div>
+
+                <!-- Indexed Documents List -->
+                <div class="bg-surface border border-border p-6 rounded-xl shadows">
+                    <h3 class="text-xs font-bold text-text-main uppercase tracking-wider mb-2" th:text="#{admin.docs.title}">Indexed Documents</h3>
+                    <div id="admin-docs-list" class="max-h-[300px] overflow-y-auto pr-1">
+                        <div class="text-text-muted text-xs py-4 text-center">Loading documents...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Scheme Management & Feedback Logs -->
+            <section class="lg:col-span-7 space-y-6">
+                <!-- Scheme Add Card -->
+                <div class="bg-surface border border-border p-6 rounded-xl shadows">
+                    <h3 class="text-xs font-bold text-text-main uppercase tracking-wider mb-4" th:text="#{admin.scheme.title}">Add Scheme Metadata</h3>
+                    
+                    <form id="admin-scheme-form" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label for="s-name" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.name}">Scheme Name</label>
+                                <input type="text" id="s-name" required class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="e.g. PM Awas Yojana">
+                            </div>
+                            <div class="space-y-1">
+                                <label for="s-category" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.category}">Category</label>
+                                <input type="text" id="s-category" required class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="e.g. Housing">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label for="s-state" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.state}">Jurisdiction State / Central</label>
+                                <input type="text" id="s-state" required class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="Central or Rajasthan">
+                            </div>
+                            <div class="space-y-1">
+                                <label for="s-dept" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.dept}">Ministry / Department</label>
+                                <input type="text" id="s-dept" required class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="Ministry of Housing">
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label for="s-desc" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.desc}">Description</label>
+                            <textarea id="s-desc" required rows="2" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="Brief outline of the benefits provided..."></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="space-y-1">
+                                <label for="s-minage" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.minage}">Min Age</label>
+                                <input type="number" id="s-minage" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="0">
+                            </div>
+                            <div class="space-y-1">
+                                <label for="s-maxage" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.maxage}">Max Age</label>
+                                <input type="number" id="s-maxage" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="No limit">
+                            </div>
+                            <div class="space-y-1">
+                                <label for="s-maxincome" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.maxincome}">Max Income Cap</label>
+                                <input type="number" id="s-maxincome" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="No limit">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="space-y-1 col-span-1">
+                                <label for="s-gender" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.gender}">Eligible Gender</label>
+                                <select id="s-gender" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs">
+                                    <option value="All" selected>All</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1 col-span-1">
+                                <label for="s-social" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.social}">Eligible Social Category</label>
+                                <input type="text" id="s-social" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="General,OBC,SC,ST (or All)" value="All">
+                            </div>
+                            <div class="space-y-1 col-span-1">
+                                <label for="s-occupations" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{admin.scheme.occupations}">Eligible Occupations</label>
+                                <input type="text" id="s-occupations" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="Farmer,Student (or All)" value="All">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white text-xs font-semibold py-2.5 rounded-lg transition duration-150 shadow-sm" th:text="#{admin.scheme.btn}">Save Scheme Record</button>
+                    </form>
+                </div>
+
+                <!-- Feedback logs -->
+                <div class="bg-surface border border-border p-6 rounded-xl shadows">
+                    <h3 class="text-xs font-bold text-text-main uppercase tracking-wider mb-2" th:text="#{admin.feedback.title}">User Response Feedback</h3>
+                    <div id="admin-feedback-list" class="max-h-[300px] overflow-y-auto pr-1">
+                        <div class="text-text-muted text-xs py-4 text-center">Loading feedback...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Dynamic translations for admin metrics inside script -->
+    <div id="trans-metric-users" class="hidden" th:text="#{admin.metrics.users}"></div>
+    <div id="trans-metric-schemes" class="hidden" th:text="#{admin.metrics.schemes}"></div>
+    <div id="trans-metric-docs" class="hidden" th:text="#{admin.metrics.docs}"></div>
+    <div id="trans-metric-chats" class="hidden" th:text="#{admin.metrics.chats}"></div>
+
+    <!-- Footer -->
+    <footer class="w-full border-t border-border py-4 text-center text-xs text-text-muted shrink-0">
+        &copy; 2026 Government Schemes AI Assistant. Built securely with Spring Boot, Spring AI, and MySQL.
+    </footer>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>

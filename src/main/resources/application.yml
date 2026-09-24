@@ -1,0 +1,59 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: scheme-assistant
+
+  # Database configuration (H2 In-Memory for zero-install run)
+  datasource:
+    url: jdbc:h2:mem:schemedb;DB_CLOSE_DELAY=-1
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+    # MySQL config (uncomment to use MySQL instead)
+    # url: jdbc:mysql://localhost:3306/ai_scheme_assistant?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    # username: root
+    # password: ${DB_PASSWORD:password}
+    # driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA / Hibernate configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  # Servlet file upload configurations
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
+
+  # Spring AI configuration
+  # Supporting standard OpenAI or Gemini (via OpenAI compatibility)
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:${GEMINI_API_KEY:dummy-key-to-allow-startup}}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+      embedding:
+        options:
+          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+
+# App custom properties
+app:
+  upload:
+    dir: uploads
+  vector-store:
+    provider: simple # Options: simple, pgvector, chromadb
+    path: vector-store.json
+  jwt:
+    # 512-bit secret key for JWT signature
+    secret: 4e645667735368566d5970337336763979244226452948404d6351665468576d5d713f7c2132332a35363738392a232f2c25342d383930414243444546474849
+    expiration-ms: 86400000 # 24 hours

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" th:class="${theme}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{landing.title} + ' - SchemeAI'"></title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bg: 'var(--bg-primary)',
+                        surface: 'var(--bg-surface)',
+                        'surface-sec': 'var(--bg-surface-sec)',
+                        border: 'var(--border-color)',
+                        primary: 'var(--color-primary)',
+                        'primary-hover': 'var(--color-primary-hover)',
+                        success: 'var(--color-success)',
+                        warning: 'var(--color-warning)',
+                        error: 'var(--color-error)',
+                        'text-main': 'var(--text-main)',
+                        'text-muted': 'var(--text-muted)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-bg text-text-main">
+
+    <!-- Header Navbar -->
+    <header class="w-full max-w-7xl mx-auto px-6 py-4 flex items-center justify-between border-b border-border">
+        <div class="flex items-center gap-2">
+            <span class="text-xl font-bold tracking-tight text-primary">SchemeAI</span>
+            <span class="text-[10px] bg-surface border border-border text-text-muted px-2 py-0.5 rounded-full font-semibold">SECURE</span>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <!-- Language Switcher -->
+            <div class="flex items-center gap-2 text-xs font-semibold">
+                <a href="?lang=en" class="hover:text-primary transition" th:classappend="${#locale.language == 'en'} ? 'text-primary font-bold' : 'text-text-muted'">EN</a>
+                <span class="text-border">|</span>
+                <a href="?lang=hi" class="hover:text-primary transition" th:classappend="${#locale.language == 'hi'} ? 'text-primary font-bold' : 'text-text-muted'">हिंदी</a>
+            </div>
+
+            <!-- Theme Toggle -->
+            <div>
+                <a th:if="${theme == 'dark'}" href="/set-theme?theme=light" class="text-text-muted hover:text-text-main transition text-sm" title="Switch to Light Mode">☀️</a>
+                <a th:if="${theme != 'dark'}" href="/set-theme?theme=dark" class="text-text-muted hover:text-text-main transition text-sm" title="Switch to Dark Mode">🌙</a>
+            </div>
+
+            <div class="flex items-center gap-4 text-sm font-medium">
+                <a href="dashboard.html" class="text-text-muted hover:text-text-main transition" th:text="#{nav.chatbot}">Dashboard</a>
+                <a href="eligibility.html" class="text-text-muted hover:text-text-main transition" th:text="#{nav.eligibility}">Eligibility Checker</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-7xl mx-auto px-6 py-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <!-- Hero Column -->
+        <div class="lg:col-span-6 space-y-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-text-main tracking-tight leading-tight" th:text="#{landing.title}">
+                Unlock Welfare Benefits with AI Assistance
+            </h1>
+            <p class="text-text-muted text-sm md:text-base leading-relaxed max-w-xl" th:text="#{landing.desc}">
+                A secure, state-of-the-art portal to search welfare programs, verify demographic eligibility, and chat with an intelligent agent trained directly on official government documents.
+            </p>
+            
+            <!-- Features highlights -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center text-primary shrink-0 text-sm">📖</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-text-main" th:text="#{landing.feature.rag.title}">RAG Document Pipeline</h4>
+                        <p class="text-xs text-text-muted leading-normal mt-0.5" th:text="#{landing.feature.rag.desc}">Answers cited directly from official PDFs with exact page numbers.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center text-primary shrink-0 text-sm">⚡</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-text-main" th:text="#{landing.feature.match.title}">Eligibility Matching</h4>
+                        <p class="text-xs text-text-muted leading-normal mt-0.5" th:text="#{landing.feature.match.desc}">Fast demographic matches checking category, age, and income limits.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Column -->
+        <div class="lg:col-span-6 flex justify-center">
+            <div class="w-full max-w-md bg-surface border border-border p-8 rounded-xl shadows space-y-6">
+                <!-- Tab Toggles -->
+                <div class="flex border-b border-border">
+                    <button id="tab-login" onclick="toggleAuthTab('login')" class="flex-1 pb-3 text-sm font-bold border-b-2 border-primary text-text-main transition" th:text="#{landing.signin}">Sign In</button>
+                    <button id="tab-register" onclick="toggleAuthTab('register')" class="flex-1 pb-3 text-sm font-bold border-b-2 border-transparent text-text-muted hover:text-text-main transition" th:text="#{landing.register}">Create Account</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-4">
+                    <div class="space-y-1">
+                        <label for="login-username" class="text-xs text-text-muted font-semibold uppercase tracking-wider" th:text="#{landing.username}">Username</label>
+                        <input type="text" id="login-username" required class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-text-main text-sm" th:placeholder="#{landing.placeholder.username}">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="login-password" class="text-xs text-text-muted font-semibold uppercase tracking-wider" th:text="#{landing.password}">Password</label>
+                        <input type="password" id="login-password" required class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-text-main text-sm" placeholder="••••••••">
+                    </div>
+                    <div id="login-error" class="text-error text-xs font-semibold hidden"></div>
+                    <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white text-sm font-semibold py-3 rounded-lg transition duration-150 shadow-sm" th:text="#{landing.btn.login}">Access Dashboard</button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="space-y-4 hidden">
+                    <div class="space-y-1">
+                        <label for="reg-username" class="text-xs text-text-muted font-semibold uppercase tracking-wider" th:text="#{landing.username}">Username</label>
+                        <input type="text" id="reg-username" required class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-text-main text-sm" th:placeholder="#{landing.placeholder.choose_username}">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="reg-email" class="text-xs text-text-muted font-semibold uppercase tracking-wider" th:text="#{landing.email}">Email Address</label>
+                        <input type="email" id="reg-email" required class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-text-main text-sm" th:placeholder="#{landing.placeholder.email}">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="reg-password" class="text-xs text-text-muted font-semibold uppercase tracking-wider" th:text="#{landing.password}">Password</label>
+                        <input type="password" id="reg-password" required class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-text-main text-sm" placeholder="••••••••">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="reg-role" class="text-xs text-text-muted font-semibold uppercase tracking-wider" th:text="#{landing.role}">User Role</label>
+                        <select id="reg-role" class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-text-main text-sm">
+                            <option value="USER" th:text="#{landing.role.citizen}" selected>Regular Citizen (USER)</option>
+                            <option value="ADMIN" th:text="#{landing.role.admin}">System Administrator (ADMIN)</option>
+                        </select>
+                    </div>
+                    <div id="reg-error" class="text-error text-xs font-semibold hidden"></div>
+                    <div id="reg-success" class="text-success text-xs font-semibold hidden"></div>
+                    <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white text-sm font-semibold py-3 rounded-lg transition duration-150 shadow-sm" th:text="#{landing.btn.register}">Register</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full border-t border-border py-4 text-center text-xs text-text-muted">
+        &copy; 2026 Government Schemes AI Assistant. Built securely with Spring Boot, Spring AI, and MySQL.
+    </footer>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+    <script>
+        function toggleAuthTab(tab) {
+            const tabLogin = document.getElementById("tab-login");
+            const tabReg = document.getElementById("tab-register");
+            const formLogin = document.getElementById("login-form");
+            const formReg = document.getElementById("register-form");
+
+            if (tab === 'login') {
+                tabLogin.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-primary text-text-main transition";
+                tabReg.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-transparent text-text-muted hover:text-text-main transition";
+                formLogin.classList.remove("hidden");
+                formReg.classList.add("hidden");
+            } else {
+                tabLogin.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-transparent text-text-muted hover:text-text-main transition";
+                tabReg.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-primary text-text-main transition";
+                formLogin.classList.add("hidden");
+                formReg.classList.remove("hidden");
+            }
+        }
+    </script>
+</body>
+</html>

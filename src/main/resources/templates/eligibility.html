@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" th:class="${theme}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{nav.eligibility} + ' - SchemeAI'"></title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bg: 'var(--bg-primary)',
+                        surface: 'var(--bg-surface)',
+                        'surface-sec': 'var(--bg-surface-sec)',
+                        border: 'var(--border-color)',
+                        primary: 'var(--color-primary)',
+                        'primary-hover': 'var(--color-primary-hover)',
+                        success: 'var(--color-success)',
+                        warning: 'var(--color-warning)',
+                        error: 'var(--color-error)',
+                        'text-main': 'var(--text-main)',
+                        'text-muted': 'var(--text-muted)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-bg text-text-main">
+
+    <!-- Top Header -->
+    <header class="w-full bg-surface border-b border-border px-6 py-4 flex items-center justify-between z-10 shrink-0">
+        <div class="flex items-center gap-6">
+            <a href="dashboard.html" class="text-xl font-bold tracking-tight text-primary">SchemeAI</a>
+            <nav class="hidden md:flex items-center gap-4 text-xs font-semibold uppercase tracking-wider">
+                <a href="dashboard.html" class="text-text-muted hover:text-text-main transition" th:text="#{nav.chatbot}">AI Chatbot</a>
+                <a href="eligibility.html" class="text-primary border-b border-primary pb-1" th:text="#{nav.eligibility}">Eligibility Checker</a>
+                <a id="nav-admin-link" href="admin.html" class="hover:text-text-main transition hidden text-amber-500" th:text="#{nav.admin}">Admin Panel</a>
+            </nav>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <!-- Language Switcher -->
+            <div class="flex items-center gap-2 text-xs font-semibold">
+                <a href="?lang=en" class="hover:text-primary transition" th:classappend="${#locale.language == 'en'} ? 'text-primary font-bold' : 'text-text-muted'">EN</a>
+                <span class="text-border">|</span>
+                <a href="?lang=hi" class="hover:text-primary transition" th:classappend="${#locale.language == 'hi'} ? 'text-primary font-bold' : 'text-text-muted'">हिंदी</a>
+            </div>
+
+            <!-- Theme Toggle -->
+            <div>
+                <a th:if="${theme == 'dark'}" href="/set-theme?theme=light" class="text-text-muted hover:text-text-main transition text-sm" title="Switch to Light Mode">☀️</a>
+                <a th:if="${theme != 'dark'}" href="/set-theme?theme=dark" class="text-text-muted hover:text-text-main transition text-sm" title="Switch to Dark Mode">🌙</a>
+            </div>
+
+            <div class="flex items-center gap-4 text-sm">
+                <span class="text-text-muted font-medium"><span th:text="#{nav.hello}">Hello</span>, <span id="nav-username" class="text-text-main font-semibold">User</span></span>
+                <button onclick="logout()" class="bg-surface border border-border text-text-muted px-3 py-1.5 rounded-lg hover:bg-surface-sec hover:text-text-main transition text-xs font-semibold uppercase tracking-wider" th:text="#{nav.logout}">Log Out</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 w-full max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Form Container (Left Column) -->
+        <section class="lg:col-span-4 bg-surface border border-border p-6 rounded-xl shadows h-fit">
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-text-main tracking-tight" th:text="#{eligibility.title}">Scheme Matcher</h2>
+                <p class="text-xs text-text-muted mt-1 leading-normal" th:text="#{eligibility.desc}">Enter details to match with official demographic requirements.</p>
+            </div>
+            
+            <form id="eligibility-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label for="age" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{eligibility.age}">Age (Years)</label>
+                        <input type="number" id="age" required min="0" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="e.g. 28">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="gender" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{eligibility.gender}">Gender</label>
+                        <select id="gender" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs">
+                            <option value="Male" th:text="#{gender.male}">Male</option>
+                            <option value="Female" th:text="#{gender.female}">Female</option>
+                            <option value="Other" th:text="#{gender.other}">Other</option>
+                            <option value="All" th:text="#{gender.all}" selected>All Genders</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="income" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{eligibility.income}">Annual Family Income (₹)</label>
+                    <input type="number" id="income" required min="0" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs" placeholder="e.g. 150000">
+                </div>
+
+                <div class="space-y-1">
+                    <label for="occupation" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{eligibility.occupation}">Primary Occupation</label>
+                    <select id="occupation" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs">
+                        <option value="All" th:text="#{occupation.all}">All Occupations / Any</option>
+                        <option value="Farmer" th:text="#{occupation.farmer}">Farmer</option>
+                        <option value="Student" th:text="#{occupation.student}">Student</option>
+                        <option value="Self-Employed" th:text="#{occupation.self_employed}">Self-Employed</option>
+                        <option value="Unemployed" th:text="#{occupation.unemployed}">Unemployed</option>
+                        <option value="Business Owner" th:text="#{occupation.business}">Business Owner</option>
+                        <option value="Retired" th:text="#{occupation.retired}">Retired</option>
+                        <option value="Other" th:text="#{occupation.other}" selected>Other / General</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="state" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{eligibility.state}">State of Residence</label>
+                    <select id="state" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs">
+                        <option value="All" th:text="#{state.all}">All States / Central</option>
+                        <option value="Rajasthan" th:text="#{state.rajasthan}">Rajasthan</option>
+                        <option value="Maharashtra" th:text="#{state.maharashtra}">Maharashtra</option>
+                        <option value="Delhi" th:text="#{state.delhi}">Delhi</option>
+                        <option value="Gujarat" th:text="#{state.gujarat}">Gujarat</option>
+                        <option value="Karnataka" th:text="#{state.karnataka}">Karnataka</option>
+                        <option value="Tamil Nadu" th:text="#{state.tamilnadu}">Tamil Nadu</option>
+                        <option value="Uttar Pradesh" th:text="#{state.uttarpradesh}">Uttar Pradesh</option>
+                        <option value="West Bengal" th:text="#{state.westbengal}">West Bengal</option>
+                        <option value="Other" th:text="#{state.other}" selected>Other / Central Only</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="category" class="text-[10px] text-text-muted font-bold uppercase tracking-wider" th:text="#{eligibility.category}">Social Category</label>
+                    <select id="category" class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-xs">
+                        <option value="General" th:text="#{category.general}" selected>General</option>
+                        <option value="OBC" th:text="#{category.obc}">OBC</option>
+                        <option value="SC" th:text="#{category.sc}">SC</option>
+                        <option value="ST" th:text="#{category.st}">ST</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white text-xs font-semibold py-2.5 rounded-lg transition duration-150 shadow-sm" th:text="#{eligibility.btn.evaluate}">Evaluate Eligibility</button>
+            </form>
+        </section>
+
+        <!-- Results Panel (Right Column) -->
+        <section class="lg:col-span-8 flex flex-col gap-4">
+            <h3 class="text-xs font-bold text-text-muted uppercase tracking-wider" th:text="#{eligibility.results.title}">Matching Schemes Results</h3>
+            <div id="eligibility-results" class="flex-1 min-h-[400px]">
+                <div class="h-full flex items-center justify-center p-8 bg-surface border border-border rounded-xl text-text-muted text-xs text-center" th:text="#{eligibility.results.empty}">
+                    Enter your parameters in the checker panel to search for welfare schemes.
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Hidden elements for script translations in dynamic elements -->
+    <div id="trans-dept" class="hidden" th:text="#{eligibility.dept}"></div>
+    <div id="trans-rules" class="hidden" th:text="#{eligibility.btn.rules}"></div>
+    <div id="trans-modal-desc" class="hidden" th:text="#{eligibility.modal.desc}"></div>
+    <div id="trans-modal-age" class="hidden" th:text="#{eligibility.modal.age}"></div>
+    <div id="trans-modal-income" class="hidden" th:text="#{eligibility.modal.income}"></div>
+    <div id="trans-modal-occupations" class="hidden" th:text="#{eligibility.modal.occupations}"></div>
+    <div id="trans-modal-categories" class="hidden" th:text="#{eligibility.modal.categories}"></div>
+    <div id="trans-modal-genders" class="hidden" th:text="#{eligibility.modal.genders}"></div>
+    <div id="trans-modal-dept" class="hidden" th:text="#{eligibility.modal.dept}"></div>
+    <div id="trans-modal-docs" class="hidden" th:text="#{eligibility.modal.docs}"></div>
+    <div id="trans-modal-missing-title" class="hidden" th:text="#{eligibility.modal.missing.title}"></div>
+    <div id="trans-modal-missing-desc" class="hidden" th:text="#{eligibility.modal.missing.desc}"></div>
+    <div id="trans-modal-btn-ask" class="hidden" th:text="#{eligibility.modal.btn.ask}"></div>
+    <div id="trans-modal-btn-apply" class="hidden" th:text="#{eligibility.modal.btn.apply}"></div>
+    <div id="trans-modal-btn-download" class="hidden" th:text="#{eligibility.modal.btn.download}"></div>
+    <div id="trans-modal-btn-close" class="hidden" th:text="#{eligibility.modal.btn.close}"></div>
+
+    <!-- Footer -->
+    <footer class="w-full border-t border-border py-4 text-center text-xs text-text-muted shrink-0">
+        &copy; 2026 Government Schemes AI Assistant. Built securely with Spring Boot, Spring AI, and MySQL.
+    </footer>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
